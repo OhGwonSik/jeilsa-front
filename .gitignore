@@ -1,0 +1,34 @@
+# Sensitive files
+.env
+.env.local
+.env.production
+client/.env.dev
+client/.env.development
+
+# CI/CD (서버 정보 노출)
+Jenkinsfile
+
+# Internal docs
+JEILSA_FRONT_프로젝트정리.md
+commits_detail.txt
+prompts/
+attached_assets/
+replit.md
+
+# Third-party commercial library (라이선스 문제로 제외)
+client/public/libs/IBSheet8/
+
+# Dependencies
+node_modules/
+
+# Build
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+
+# Logs
+*.log
+npm-debug.log*
