@@ -25,30 +25,28 @@
 
 ---
 
-## 요구사항
+## 참고 사항
 
-- Node.js 20.x
-- npm
-
----
-
-## 실행 방법
-
-```bash
-git clone https://github.com/OhGwonSik/jeilsa-front.git
-cd jeilsa-front
-npm install
-
-# .env 파일 생성 후 VITE_API_BASE_URL 설정
-
-npm run dev:local
-```
+- 이 저장소는 포트폴리오 목적으로 코드 구조와 구현 내용을 공개합니다.
+- 실제 운영 환경(백엔드 API)과 분리되어 있어 별도 환경 구성 없이는 직접 실행할 수 없습니다.
+- 빌드 환경(참고): Node.js 20.x, npm, Vite
+- API 주소 등 설정값은 `.env`에서 관리되며, 보안상 저장소에는 포함하지 않았습니다 (`VITE_API_BASE_URL`).
 
 ---
 
 ## 주요 기능
 
 ### 인증
+
+```mermaid
+flowchart LR
+    A[API 요청] --> B{401 발생?}
+    B -- No --> F[정상 응답]
+    B -- Yes --> C{이미 refresh 중?}
+    C -- No --> D[refresh 토큰 요청] --> E[대기 큐 일괄 재시도]
+    C -- Yes --> G[큐에 대기] --> E
+```
+
 - JWT AccessToken / RefreshToken 연동
 - Axios 인터셉터 기반 토큰 자동 갱신
 - 동시 401 발생 시 큐잉 처리 (1회만 refresh 수행)
@@ -61,6 +59,12 @@ npm run dev:local
 - 세금계산서 ZIP 다운로드
 
 ### 운송 기능
+
+```mermaid
+flowchart LR
+    A[운송정보 입력] --> B[배송체크] --> C[도착분] --> D[화주별 정산서/상세]
+```
+
 - 운송정보 입력 / 배송체크 / 도착분 / 운송장 선등록
 - 화주별 정산서 / 화주별 상세
 
@@ -73,23 +77,19 @@ npm run dev:local
 ## 트러블슈팅
 
 ### 동시 401 무한 refresh 루프
+> API 요청 시, 여러 요청이 동시에 401을 받으면 refresh가 중복 호출되는 문제 발생 → isRefreshing 플래그와 failedQueue로 큐잉하여 1회만 refresh 수행 후 대기 요청을 일괄 재시도하도록 개선
+
 - **문제**: 여러 요청 동시 401 시 refresh 중복 호출 발생
 - **해결**: isRefreshing 플래그 + failedQueue 배열로 큐잉, 1회만 refresh 수행 후 대기 요청 일괄 재시도
 
 ### IBSheet 그리드 중복 오픈 오류
+> 모달에서 IBSheet 그리드를 재오픈할 때, 기존 시트가 제거되지 않아 충돌 발생 → 모달 열림/닫힘 시점에 dispose + removeSheet 처리를 추가해 충돌 해결
+
 - **문제**: 모달 재오픈 시 기존 시트 미제거로 충돌 발생
 - **해결**: 모달 열림/닫힘 시 IBSheet dispose + loader.removeSheet 처리
 
 ### 화주별 내역 무한 리렌더링
+> 화주별 내역 페이지에서, useEffect 의존성 배열 설정 오류로 무한 렌더링 발생 → 의존성 배열을 수정해 정상화
+
 - **문제**: shipper-details.tsx useEffect 의존성 배열 오류로 무한 렌더링
 - **해결**: useEffect 의존성 배열 수정
-
----
-
-## 환경 설정
-
-`.env` 파일을 생성하고 아래 내용을 설정하세요.
-
-```env
-VITE_API_BASE_URL=http://localhost:8080
-```
